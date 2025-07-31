@@ -143,7 +143,7 @@ from .const import (
     DEFAULT_MAX_FLOOR_TEMP,
     DEFAULT_NAME,
     DEFAULT_TOLERANCE,
-    TIMED_OPENING_SCHEMA,
+    TIMED_OPENING_SCHEMA, CONF_CUSTOM_POSITION_VALVE,
 )
 from .hvac_action_reason.hvac_action_reason import (
     SERVICE_SET_HVAC_ACTION_REASON,
@@ -251,6 +251,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             [PRECISION_TENTHS, PRECISION_HALVES, PRECISION_WHOLE]
         ),
         vol.Optional(CONF_UNIQUE_ID): cv.string,
+        vol.Optional(CONF_CUSTOM_POSITION_VALVE): cv.entity_id,
     }
 ).extend({vol.Optional(v): PRESET_SCHEMA for (k, v) in CONF_PRESETS.items()})
 
