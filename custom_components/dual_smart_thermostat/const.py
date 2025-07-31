@@ -26,6 +26,7 @@ CONF_AUX_HEATER = "secondary_heater"
 CONF_AUX_HEATING_TIMEOUT = "secondary_heater_timeout"
 CONF_AUX_HEATING_DUAL_MODE = "secondary_heater_dual_mode"
 CONF_COOLER = "cooler"
+CONF_CUSTOM_POSITION_VALVE = "custom_position_valve"
 
 CONF_DRYER = "dryer"
 CONF_MIN_HUMIDITY = "min_humidity"

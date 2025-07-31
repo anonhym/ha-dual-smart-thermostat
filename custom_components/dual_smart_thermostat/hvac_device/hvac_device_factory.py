@@ -9,6 +9,7 @@ from custom_components.dual_smart_thermostat.const import (
     CONF_AUX_HEATING_DUAL_MODE,
     CONF_AUX_HEATING_TIMEOUT,
     CONF_COOLER,
+    CONF_CUSTOM_POSITION_VALVE,
     CONF_DRYER,
     CONF_FAN,
     CONF_FAN_ON_WITH_AC,
@@ -26,6 +27,9 @@ from custom_components.dual_smart_thermostat.hvac_device.cooler_device import (
 from custom_components.dual_smart_thermostat.hvac_device.cooler_fan_device import (
     CoolerFanDevice,
 )
+from custom_components.dual_smart_thermostat.hvac_device.custom_position_valve_with_fan_device import (
+    CustomPositionValveWithFanDevice,
+)
 from custom_components.dual_smart_thermostat.hvac_device.dryer_device import DryerDevice
 from custom_components.dual_smart_thermostat.hvac_device.fan_device import FanDevice
 from custom_components.dual_smart_thermostat.hvac_device.heat_pump_device import (
@@ -42,6 +46,9 @@ from custom_components.dual_smart_thermostat.hvac_device.heater_device import (
 )
 from custom_components.dual_smart_thermostat.hvac_device.multi_hvac_device import (
     MultiHvacDevice,
+)
+from custom_components.dual_smart_thermostat.hvac_controller.hvac_controller import (
+    HvacGoal,
 )
 from custom_components.dual_smart_thermostat.managers.environment_manager import (
     EnvironmentManager,
@@ -84,6 +91,7 @@ class HVACDeviceFactory:
         self._fan_on_with_cooler = config.get(CONF_FAN_ON_WITH_AC)
 
         self._dryer_entity_id = config.get(CONF_DRYER)
+        self._custom_position_valve_entity_id = config.get(CONF_CUSTOM_POSITION_VALVE)
         self._heat_pump_cooling_entity_id = config.get(CONF_HEAT_PUMP_COOLING)
 
         self._aux_heater_entity_id = config.get(CONF_AUX_HEATER)
@@ -106,6 +114,7 @@ class HVACDeviceFactory:
         cooler_device = None
         heater_device = None
         aux_heater_device = None
+        custom_position_valve_device = None
 
         if self._features.is_configured_for_dryer_mode:
             dryer_device = DryerDevice(
@@ -198,6 +207,25 @@ class HVACDeviceFactory:
                 hvac_power,
             )
 
+        if self._custom_position_valve_entity_id:
+            # Check if both custom valve and fan are configured for combined device
+            if self._fan_entity_id and not self._features.is_configured_for_fan_only_mode:
+                _LOGGER.info("Creating custom position valve with fan device")
+                custom_position_valve_device = CustomPositionValveWithFanDevice(
+                    self.hass,
+                    self._custom_position_valve_entity_id,
+                    self._fan_entity_id,
+                    self._min_cycle_duration,
+                    self._initial_hvac_mode,
+                    environment,
+                    openings,
+                    self._features,
+                    hvac_power,
+                    HvacGoal.RAISE,
+                )
+                # Set fan_device to None to prevent separate fan device creation
+                fan_device = None
+
         if aux_heater_device and heater_device:
             _LOGGER.info("Creating heater aux heater device")
             heater_device = HeaterAUXHeaterDevice(
@@ -264,6 +292,22 @@ class HVACDeviceFactory:
 
         if fan_device:
             return fan_device
+
+        if custom_position_valve_device:
+            if dryer_device:
+                return MultiHvacDevice(
+                    self.hass,
+                    [custom_position_valve_device, dryer_device],
+                    self._initial_hvac_mode,
+                    environment,
+                    openings,
+                    self._features,
+                )
+            else:
+                return custom_position_valve_device
+
+        if dryer_device:
+            return dryer_device
 
     def _create_cooler_device(
         self,
