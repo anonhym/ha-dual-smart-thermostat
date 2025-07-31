@@ -160,6 +160,7 @@ PRESET_SCHEMA = {
     vol.Optional(ATTR_TARGET_TEMP_HIGH): vol.Coerce(float),
     vol.Optional(CONF_MAX_FLOOR_TEMP): vol.Coerce(float),
     vol.Optional(CONF_MIN_FLOOR_TEMP): vol.Coerce(float),
+    vol.Optional(CONF_CUSTOM_POSITION_VALVE): cv.entity_id,
 }
 
 SECONDARY_HEATING_SCHEMA = {
@@ -251,7 +252,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             [PRECISION_TENTHS, PRECISION_HALVES, PRECISION_WHOLE]
         ),
         vol.Optional(CONF_UNIQUE_ID): cv.string,
-        vol.Optional(CONF_CUSTOM_POSITION_VALVE): cv.entity_id,
     }
 ).extend({vol.Optional(v): PRESET_SCHEMA for (k, v) in CONF_PRESETS.items()})
 
